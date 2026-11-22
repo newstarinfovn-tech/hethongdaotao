@@ -1193,13 +1193,16 @@ function initSpeechEngine(){
 }
 document.addEventListener('click', initSpeechEngine, {once:true});
 
-// Tự động đánh thức Camera nếu bị trình duyệt ngủ đông (chuyển tab, khóa màn hình)
+// Xử lý khi học viên thoát ra ngoài (nghe điện thoại, mở app khác) và khi quay lại
 document.addEventListener("visibilitychange", function() {
-    if (document.visibilityState === "visible") {
+    if (document.visibilityState === "hidden") {
+        if (typeof t2 !== 'undefined' && t2.onHide) t2.onHide();
+    } else if (document.visibilityState === "visible") {
         const t2v = document.getElementById('t2-video');
         const t3v = document.getElementById('t3-video');
         if (t2v && t2v.srcObject && t2v.paused) { t2v.play().catch(e=>{}); }
         if (t3v && t3v.srcObject && t3v.paused) { t3v.play().catch(e=>{}); }
+        if (typeof t2 !== 'undefined' && t2.onResume) t2.onResume();
     }
 });
 // Phát hiện Zalo và hiển thị cảnh báo
@@ -1799,6 +1802,8 @@ const t2 = (()=>{
   let initDone = false;
   let camMonitorInt = null;
   let isLearningActive = false;
+  let lastLectureText = '';
+  let interruptedByHide = false;
 
   function loadVoices(){
     if(!('speechSynthesis' in window))return;
@@ -2060,8 +2065,15 @@ const t2 = (()=>{
       for(const c of chunks){ if(!isSpeaking)break; await speakOne(c); await sleep(120); }
       isSpeaking = false;
       $('t2-avatar').classList.remove('speaking');
-      if(isWarn){ $('t2-status').innerText = '⚠️ Bấm Qua bài tiếp theo nếu đã hiểu.'; startKickTimer(); }
-      else { $('t2-status').innerText = isEndOfLesson?'✅ Đã hoàn thành. Bấm Kết thúc!':'✅ Xong. Chọn hành động tiếp theo.'; startIdleTimer(); }
+      if (interruptedByHide) {
+        $('t2-status').innerText = `⏸️ Đã tạm dừng câu ${currentStep}. Quay lại ứng dụng để nghe giảng lại câu này.`;
+      } else if(isWarn){
+        $('t2-status').innerText = '⚠️ Bấm Qua bài tiếp theo nếu đã hiểu.';
+        startKickTimer();
+      } else {
+        $('t2-status').innerText = isEndOfLesson?'✅ Đã hoàn thành. Bấm Kết thúc!':'✅ Xong. Chọn hành động tiếp theo.';
+        startIdleTimer();
+      }
       resolve();
     });
   }
@@ -2143,7 +2155,8 @@ const t2 = (()=>{
       });
 
       if (res && res.success && res.reply) {
-        await speakWait(res.reply.replace(/[*#]/g, '').trim());
+        lastLectureText = res.reply.replace(/[*#]/g, '').trim();
+        await speakWait(lastLectureText);
       } else {
         await speakWait('Hệ thống đang bận, em thử lại sau ít giây nhé.');
       }
@@ -2189,7 +2202,35 @@ const t2 = (()=>{
     }catch(e){hideLoad();alert('Lỗi: '+e.message)}
   }
 
-  return {init, selectLesson, lecture, next, mic, unlock, checkout, speedUp, speedDown, stopCam};
+  function onHide() {
+    if (isLearningActive && isSpeaking && currentStep > 0 && !isEndOfLesson) {
+      interruptedByHide = true;
+      isSpeaking = false;
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+    }
+  }
+
+  function onResume() {
+    // Cập nhật ngay đồng hồ học (không bị dừng khi thoát app)
+    if (startTime) {
+      const s = Math.floor((Date.now() - startTime) / 1000);
+      $('t2-timer').innerText = '⏱ ' + fmtTime(s);
+    }
+    // Nếu trước đó đang giảng dở mà thoát ra -> giảng lại đúng câu hiện tại
+    if (interruptedByHide && isLearningActive && currentStep > 0 && !isEndOfLesson) {
+      interruptedByHide = false;
+      $('t2-status').innerText = `🔄 Đang giảng lại Câu ${currentStep}/${lessonData.length}...`;
+      setTimeout(() => {
+        if (lastLectureText) {
+          speakWait(lastLectureText);
+        } else {
+          requestStep();
+        }
+      }, 400);
+    }
+  }
+
+  return {init, selectLesson, lecture, next, mic, unlock, checkout, speedUp, speedDown, stopCam, onHide, onResume};
 })();
 
 /* ═══════════════════════════════════════════════════════════
