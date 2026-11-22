@@ -179,6 +179,8 @@ button{font-family:inherit}
 #t2-unlock{background:#64748b;font-size:13px;padding:10px;display:none;}
 #t2-checkout{background:#22c55e;display:none}
 #t2-checkout.active{display:block}
+#t2-exit{background:#475569;margin-top:4px}
+#t2-exit:hover{background:#334155}
 
 /* THI LÝ THUYẾT (TAB 3) */
 .t3-head{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 20px;border-radius:12px;margin-bottom:16px;flex-wrap:wrap;gap:10px;border:1px solid var(--border-color);box-shadow:0 2px 8px rgba(0,0,0,0.02);font-weight:700;color:var(--brand-blue);}
@@ -540,24 +542,27 @@ button{font-family:inherit}
     line-height: 1;
 }
 
-/* THÔNG BÁO CẬP NHẬT PHIÊN BẢN MỚI */
+/* THÔNG BÁO CẬP NHẬT PHIÊN BẢN MỚI (CHÍNH GIỮA MÀN HÌNH) */
 #pwa-update-toast {
     position: fixed;
-    bottom: 20px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     background: #1e3a8a;
     color: #fff;
-    padding: 12px 18px;
-    border-radius: 12px;
+    padding: 20px 24px;
+    border-radius: 16px;
     border: 2px solid #d4af37;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
     display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: 14px;
     z-index: 9999;
-    max-width: 92vw;
-    font-size: 13.5px;
+    width: 320px;
+    max-width: 90vw;
+    font-size: 14.5px;
     font-weight: 600;
 }
 #pwa-update-toast button {
@@ -917,6 +922,7 @@ button{font-family:inherit}
       <button id="t2-mic" onclick="t2.mic()">🎤 Hỏi lại</button>
       <button id="t2-unlock" onclick="t2.unlock()">🔓 Mở khóa Mạng</button>
       <button id="t2-checkout" onclick="t2.checkout()">🚪 Kết thúc Buổi học</button>
+      <button id="t2-exit" onclick="t2.exitLesson()">⏹️ Thoát buổi học (Học lại sau)</button>
     </div>
   </div>
 </main>
@@ -2058,6 +2064,8 @@ const t2 = (()=>{
       if(!viVoice){ loadVoices(); if(!viVoice){ const voices = speechSynthesis.getVoices(); if(voices.length > 0) viVoice = voices.find(v => v.lang && v.lang.startsWith('vi')) || voices[0]; } }
       stopIdle(); speechSynthesis.cancel();
       isSpeaking = true;
+      if ($('t2-next')) $('t2-next').disabled = true;
+      if ($('t2-mic')) $('t2-mic').disabled = true;
       $('t2-avatar').classList.add('speaking');
       if(!startTime){startTime = Date.now(); startTimer();}
       const clean = preprocessSpeech(text);
@@ -2067,12 +2075,16 @@ const t2 = (()=>{
       $('t2-avatar').classList.remove('speaking');
       if (interruptedByHide) {
         $('t2-status').innerText = `⏸️ Đã tạm dừng câu ${currentStep}. Quay lại ứng dụng để nghe giảng lại câu này.`;
-      } else if(isWarn){
-        $('t2-status').innerText = '⚠️ Bấm Qua bài tiếp theo nếu đã hiểu.';
-        startKickTimer();
       } else {
-        $('t2-status').innerText = isEndOfLesson?'✅ Đã hoàn thành. Bấm Kết thúc!':'✅ Xong. Chọn hành động tiếp theo.';
-        startIdleTimer();
+        if ($('t2-next') && $('t2-next').style.display !== 'none') $('t2-next').disabled = false;
+        if ($('t2-mic')) $('t2-mic').disabled = false;
+        if(isWarn){
+          $('t2-status').innerText = '⚠️ Bấm Qua bài tiếp theo nếu đã hiểu.';
+          startKickTimer();
+        } else {
+          $('t2-status').innerText = isEndOfLesson?'✅ Đã hoàn thành. Bấm Kết thúc!':'✅ Xong. Chọn hành động tiếp theo.';
+          startIdleTimer();
+        }
       }
       resolve();
     });
@@ -2216,9 +2228,11 @@ const t2 = (()=>{
       const s = Math.floor((Date.now() - startTime) / 1000);
       $('t2-timer').innerText = '⏱ ' + fmtTime(s);
     }
-    // Nếu trước đó đang giảng dở mà thoát ra -> giảng lại đúng câu hiện tại
+    // Nếu trước đó đang giảng dở mà thoát ra -> khóa nút ngay và giảng lại đúng câu hiện tại
     if (interruptedByHide && isLearningActive && currentStep > 0 && !isEndOfLesson) {
       interruptedByHide = false;
+      if ($('t2-next')) $('t2-next').disabled = true;
+      if ($('t2-mic')) $('t2-mic').disabled = true;
       $('t2-status').innerText = `🔄 Đang giảng lại Câu ${currentStep}/${lessonData.length}...`;
       setTimeout(() => {
         if (lastLectureText) {
@@ -2230,7 +2244,50 @@ const t2 = (()=>{
     }
   }
 
-  return {init, selectLesson, lecture, next, mic, unlock, checkout, speedUp, speedDown, stopCam, onHide, onResume};
+  function exitLesson() {
+    if (!confirm('Bạn muốn thoát buổi học này?\n(Tiến độ buổi đang học sẽ chưa được lưu, lần sau bạn sẽ học lại buổi này mà không cần đăng nhập lại)')) {
+      return;
+    }
+
+    // 1. Dừng giọng đọc, bộ đếm và tắt camera
+    isLearningActive = false;
+    isSpeaking = false;
+    interruptedByHide = false;
+    lastLectureText = '';
+    chosenLesson = 0;
+    currentStep = 0;
+    isEndOfLesson = false;
+
+    stopIdle();
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if (timerInt) { clearInterval(timerInt); timerInt = null; }
+    startTime = 0;
+    $('t2-timer').innerText = '⏱ 00:00';
+
+    hideCameraWarning();
+    window.isT2WarningActive = false;
+    stopCam();
+    unlockTabs();
+
+    // 2. Đưa giao diện về màn hình chọn Buổi học (giữ nguyên đăng nhập)
+    $('t2-avatar').classList.remove('speaking');
+    $('t2-lessons').style.display = 'grid';
+    $('t2-speed').classList.remove('show');
+    $('t2-class').classList.remove('show');
+    $('t2-lecture').style.display = 'inline-block';
+    $('t2-lecture').disabled = false;
+    $('t2-next').style.display = 'none';
+    $('t2-next').disabled = false;
+    $('t2-mic').disabled = false;
+    $('t2-checkout').classList.remove('active');
+    $('t2-checkout').style.display = 'none';
+    $('t2-status').innerText = 'Bạn đã thoát buổi học. Hãy chọn buổi học khi sẵn sàng!';
+
+    updateLessonButtons();
+    renderLockInfo();
+  }
+
+  return {init, selectLesson, lecture, next, mic, unlock, checkout, exitLesson, speedUp, speedDown, stopCam, onHide, onResume};
 })();
 
 /* ═══════════════════════════════════════════════════════════
