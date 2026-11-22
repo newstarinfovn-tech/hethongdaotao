@@ -68,6 +68,35 @@ button{font-family:inherit}
 /* FORM ĐĂNG KÝ */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
 .form-row.full{grid-template-columns:1fr}
+.form-row.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:680px){.form-row.three{grid-template-columns:1fr}}
+.t1-code-badge{
+    display:inline-block;background:#eff6ff;color:var(--brand-blue);
+    border:1px dashed var(--brand-blue-light);padding:6px 14px;
+    border-radius:20px;font-size:13px;font-weight:700;margin-bottom:14px;
+}
+.t1-sec-head{
+    background:#eff6ff;color:var(--brand-blue);font-size:13px;font-weight:800;
+    padding:9px 14px;border-left:4px solid var(--brand-blue);border-radius:6px;
+    margin:18px 0 14px;text-transform:uppercase;
+}
+.upload-box{
+    border:2px dashed #cbd5e1;border-radius:10px;padding:12px;text-align:center;
+    background:#f8fafc;cursor:pointer;transition:0.2s;min-height:175px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+}
+.upload-box:hover{border-color:var(--brand-blue-light);background:#eff6ff;}
+.upload-box.has-img{border-style:solid;border-color:#22c55e;background:#f0fdf4;}
+.upload-box input[type="file"]{display:none;}
+.upload-box .u-icon{font-size:32px;}
+.upload-box .u-text{font-size:12.5px;color:#475569;font-weight:600;}
+.upload-box img.preview{
+    max-width:100%;max-height:135px;border-radius:8px;object-fit:contain;
+    border:1px solid #cbd5e1;background:#fff;display:none;
+}
+.upload-box.has-img img.preview{display:block;}
+.upload-box.has-img .u-icon{display:none;}
+.upload-box.has-img .u-text{color:#166534;font-size:12px;}
 @media(max-width:600px){.form-row{grid-template-columns:1fr}}
 .field label{display:block;color:var(--brand-blue);font-size:13px;font-weight:700;margin-bottom:6px}
 .field input,.field select{
@@ -485,34 +514,102 @@ button{font-family:inherit}
   <button data-tab="4" disabled onclick="switchTab(4)">💅THI THỰC HÀNH</button>
 </nav>
 
-<!-- TAB 1 -->
+<!-- TAB 1: PHIẾU HỌC VIÊN / ĐĂNG NHẬP -->
 <main id="tab-1" class="pane">
   <div class="card">
-    <div style="text-align:center; margin-bottom: 20px;">
-      <img src="logo newstar.png" alt="Logo Newstar" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid #00a8ff; box-shadow:0 4px 15px rgba(0,168,255,0.4);" onerror="this.style.display='none'">
+    <div style="text-align:center; margin-bottom: 14px;">
+      <img src="logo newstar.png" alt="Logo Newstar" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--brand-gold); box-shadow:0 4px 15px rgba(30,58,138,0.2);" onerror="this.style.display='none'">
     </div>
-    
-    <h2 style="text-align:center;">📝 PHIẾU ĐĂNG KÝ / ĐĂNG NHẬP</h2>
+
+    <div style="text-align:center;">
+      <h2 style="margin-bottom:6px;">📝 PHIẾU HỌC VIÊN / ĐĂNG NHẬP</h2>
+      <div class="t1-code-badge" id="t1-preview-code">Số: NS/xx-000000** (Cấp tự động khi đăng ký mới)</div>
+    </div>
+
     <div id="t1-banner" class="banner hidden"></div>
-    <p style="color:#01013d;font-size:13px;margin:0 0 16px;line-height:1.5;text-align:center;">
-      <b>Bạn đã có tài khoản?</b> Nhập <b>Họ tên (IN HOA)</b> + <b>Số CCCD</b> + <b>Chọn Ngành học</b>. Hệ thống sẽ tự động đăng nhập vào đúng ngành.<br>
-      <b>Nếu chưa có tài khoản?</b> Điền đầy đủ tất cả thông tin bên dưới để đăng ký mới.
-    </p>
+
+    <div class="banner danger" style="font-size:13.5px;text-align:center;color:#dc2626;">
+      <b>Đã có tài khoản?</b> Chỉ cần nhập <b>1. Họ tên (IN HOA)</b> + <b>2. Số CCCD</b> + <b>7. Môn học</b> rồi bấm nút Gửi bên dưới để đăng nhập ngay.<br>
+      <b>Chưa có tài khoản / Đăng ký thêm môn mới?</b> Điền đầy đủ thông tin và tải 3 ảnh hồ sơ bên dưới.
+    </div>
+
     <form id="t1-form" onsubmit="event.preventDefault();submitReg();">
+      <div class="t1-sec-head">I. Thông tin về học viên</div>
+
+      <!-- 1. Họ tên + Giới tính -->
       <div class="form-row">
         <div class="field">
-          <label>Họ và tên (CHỮ IN HOA CÓ DẤU) <span style="color:#e74c3c">*</span></label>
+          <label>1. Họ và tên khai sinh (CHỮ IN HOA CÓ DẤU) <span style="color:#e74c3c">*</span></label>
           <input id="t1-name" placeholder="PHẠM HÀ MY" required style="text-transform:uppercase">
         </div>
-        <div class="field"><label>Ngày tháng năm sinh</label><input id="t1-dob" type="date"></div>
+        <div class="field">
+          <label>Giới tính</label>
+          <div class="radio-g">
+            <label><input type="radio" name="t1-gender" value="Nam"> Nam</label>
+            <label><input type="radio" name="t1-gender" value="Nữ"> Nữ</label>
+          </div>
+        </div>
       </div>
+
+      <!-- 2. Ngày sinh + CCCD -->
       <div class="form-row">
-        <div class="field"><label>Số CCCD (12 số) <span style="color:#e74c3c">*</span></label><input id="t1-cccd" inputmode="numeric" maxlength="12" pattern="[0-9]{12}" placeholder="012345678901" required></div>
-        <div class="field"><label>Email (Cung cấp chính xác để nhận kết quả thi)</label><input id="t1-email" type="email" placeholder="email@example.com"></div>
+        <div class="field">
+          <label>2. Ngày tháng năm sinh</label>
+          <input id="t1-dob" type="date">
+        </div>
+        <div class="field">
+          <label>Số CMTND / CCCD (9 hoặc 12 số) <span style="color:#e74c3c">*</span></label>
+          <input id="t1-cccd" inputmode="numeric" maxlength="12" placeholder="012345678901" required>
+        </div>
       </div>
+
+      <!-- 3. Điện thoại + Email -->
       <div class="form-row">
-        <div class="field"><label>Điện thoại</label><input id="t1-phone" type="tel" pattern="(0[35789])[0-9]{8}" placeholder="09xxxxxxxx"></div>
-               <div class="field">
+        <div class="field">
+          <label>3. Điện thoại</label>
+          <input id="t1-phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx">
+        </div>
+        <div class="field">
+          <label>Email (Nhận kết quả thi tự động)</label>
+          <input id="t1-email" type="email" placeholder="email@example.com">
+        </div>
+      </div>
+
+      <!-- 4. Nguyên quán -->
+      <div class="form-row full">
+        <div class="field">
+          <label>4. Nguyên quán</label>
+          <input id="t1-hometown" placeholder="Xã/Phường, Quận/Huyện, Tỉnh/Thành phố">
+        </div>
+      </div>
+
+      <!-- 5. Hộ khẩu thường trú -->
+      <div class="form-row full">
+        <div class="field">
+          <label>5. Hộ khẩu thường trú</label>
+          <input id="t1-residence" placeholder="Số nhà, đường/thôn, xã/phường, tỉnh/thành phố">
+        </div>
+      </div>
+
+      <!-- 6. Dân tộc + Thuộc đối tượng -->
+      <div class="form-row">
+        <div class="field">
+          <label>6. Dân tộc</label>
+          <input id="t1-ethnicity" value="Kinh" placeholder="VD: Kinh, Tày, Thái...">
+        </div>
+        <div class="field">
+          <label>Thuộc đối tượng (ghi cụ thể)</label>
+          <input id="t1-policy" placeholder="VD: Không / Hộ nghèo / Con thương binh...">
+        </div>
+      </div>
+
+      <!-- 7. Đăng ký thi sát hạch môn học + Thời gian học nghề -->
+      <div class="form-row">
+        <div class="field">
+          <label>7. Đăng ký thi sát hạch môn học <span style="color:#e74c3c">*</span></label>
+          <select id="t1-major" required></select>
+        </div>
+        <div class="field">
           <label>Thời gian đã học nghề</label>
           <select id="t1-exp">
             <option value="">— Chọn thời gian —</option>
@@ -521,21 +618,76 @@ button{font-family:inherit}
           </select>
         </div>
       </div>
-      <div class="form-row full">
+
+      <!-- 8. Trình độ học lực + Cơ sở học -->
+      <div class="form-row">
         <div class="field">
-          <label>Ngành nghề (Chọn ngành muốn đăng nhập / đăng ký) <span style="color:#e74c3c">*</span></label>
-          <select id="t1-major" required></select>
+          <label>8. Trình độ học lực (bậc cao nhất đã tốt nghiệp)</label>
+          <select id="t1-education">
+            <option value="">— Chọn trình độ học lực —</option>
+            <option value="ĐH">Đại học (ĐH)</option>
+            <option value="CĐ">Cao đẳng (CĐ)</option>
+            <option value="TC">Trung cấp (TC)</option>
+            <option value="THPT">Trung học phổ thông (THPT)</option>
+            <option value="THCS">Trung học cơ sở (THCS)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Học tại cơ sở (nếu có)</label>
+          <input id="t1-address" placeholder="Tên cơ sở / địa chỉ học nghề">
         </div>
       </div>
+
+      <!-- 9. Người báo tin + SĐT -->
       <div class="form-row">
-        <div class="field"><label>Học tại cơ sở (địa chỉ)</label><input id="t1-address" placeholder="Số nhà, đường, phường, TP..."></div>
-        <div class="field"><label>SĐT liên hệ</label><input id="t1-contact-phone" type="tel" pattern="(0[35789])[0-9]{8}" placeholder="09xxxxxxxx"></div>
+        <div class="field">
+          <label>9. Khi cần, báo tin cho ai (Họ, tên)</label>
+          <input id="t1-emg-name" placeholder="Họ và tên người thân">
+        </div>
+        <div class="field">
+          <label>Điện thoại người báo tin</label>
+          <input id="t1-emg-phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx">
+        </div>
       </div>
+
+      <!-- 10, 11, 12. Ảnh hồ sơ -->
+      <div class="t1-sec-head">II. Hồ sơ hình ảnh đính kèm (Chỉ cần khi đăng ký mới)</div>
+      <div class="form-row three">
+        <div class="field">
+          <label>10. Hình thẻ (3x4 hoặc 4x6)</label>
+          <div class="upload-box" id="t1-box-avatar" onclick="document.getElementById('t1-file-avatar').click()">
+            <input type="file" id="t1-file-avatar" accept="image/*" onchange="handleT1Image(this, 'avatar')">
+            <div class="u-icon">👤</div>
+            <img id="t1-prev-avatar" class="preview" alt="Hình thẻ">
+            <div class="u-text" id="t1-txt-avatar">Bấm để tải Hình thẻ</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>11. Hình CCCD mặt trước</label>
+          <div class="upload-box" id="t1-box-front" onclick="document.getElementById('t1-file-front').click()">
+            <input type="file" id="t1-file-front" accept="image/*" onchange="handleT1Image(this, 'front')">
+            <div class="u-icon">💳</div>
+            <img id="t1-prev-front" class="preview" alt="CCCD mặt trước">
+            <div class="u-text" id="t1-txt-front">Bấm để tải CCCD mặt trước</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>12. Hình CCCD mặt sau</label>
+          <div class="upload-box" id="t1-box-back" onclick="document.getElementById('t1-file-back').click()">
+            <input type="file" id="t1-file-back" accept="image/*" onchange="handleT1Image(this, 'back')">
+            <div class="u-icon">💳</div>
+            <img id="t1-prev-back" class="preview" alt="CCCD mặt sau">
+            <div class="u-text" id="t1-txt-back">Bấm để tải CCCD mặt sau</div>
+          </div>
+        </div>
+      </div>
+
       <div class="consent">
         <input type="checkbox" id="t1-consent">
-        <label for="t1-consent" style="cursor:pointer">Tôi xin cam đoan mọi thông tin đã cung cấp ở trên là hoàn toàn chính xác. Bằng văn bản này, tôi có nguyện vọng đăng ký tham gia khóa ôn tập và kỳ thi sát hạch tay nghề.</label>
+        <label for="t1-consent" style="cursor:pointer">Tôi xin cam đoan những thông tin đã khai là đúng sự thật, nếu sai, tôi xin chịu trách nhiệm trước pháp luật.</label>
       </div>
-      <button type="submit" class="btn-main" id="t1-submit">✅ GỬI XÁC NHẬN THÔNG TIN / ĐĂNG NHẬP</button>
+
+      <button type="submit" class="btn-main" id="t1-submit">✅ ĐĂNG NHẬP / NỘP PHIẾU HỌC VIÊN</button>
     </form>
   </div>
 </main>
@@ -963,6 +1115,7 @@ async function refreshStudent(){
     const d = await apiCall(URL_CHINH,{action:'getStudent',cccd:session.cccd,major:session.major});
     if(!d.success)return false;
     student = d.data;
+    updateT1CodeBadge(student.maPhieu);
     updateLocks();
     return true;
   }catch(e){return false}
@@ -1293,17 +1446,84 @@ function attachUppercaseName(){
   });
 }
 
+const t1Images = { avatar: '', front: '', back: '' };
+
+function updateT1CodeBadge(maPhieu) {
+  const el = $('t1-preview-code');
+  if (!el) return;
+  if (maPhieu) {
+    el.innerText = 'Số phiếu: ' + maPhieu;
+    el.style.background = '#f0fdf4';
+    el.style.color = '#166534';
+    el.style.borderColor = '#22c55e';
+  } else {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yy = String(d.getFullYear()).slice(-2);
+    el.innerText = `Số: NS/xx-${dd}${mm}${yy}**`;
+    el.style.background = '#eff6ff';
+    el.style.color = 'var(--brand-blue)';
+    el.style.borderColor = 'var(--brand-blue-light)';
+  }
+}
+updateT1CodeBadge('');
+
+function compressT1Image(file, maxSize = 1200, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+          else { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleT1Image(input, key) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    alert('Vui lòng chỉ chọn file hình ảnh (JPG, PNG...)');
+    input.value = '';
+    return;
+  }
+  try {
+    const compressed = await compressT1Image(file);
+    t1Images[key] = compressed;
+    $('t1-prev-' + key).src = compressed;
+    $('t1-box-' + key).classList.add('has-img');
+    $('t1-txt-' + key).innerText = '✅ Đã chọn ảnh (Bấm để đổi)';
+  } catch (err) {
+    alert('Không đọc được ảnh này. Vui lòng thử ảnh khác.');
+  }
+}
+
 async function submitReg(){
   const name = val('t1-name').toUpperCase();
   const cccd = val('t1-cccd');
   const major = val('t1-major');
-  
-  if(!name){ alert('Vui lòng nhập Họ và tên (IN HOA)'); return; }
-  if(!/^\d{12}$/.test(cccd)){ alert('CCCD phải đúng 12 số'); return; }
-  if(!major){ alert('Vui lòng chọn Ngành học!'); return; }
 
-  showLoad('Đang kiểm tra thông tin...');
+  if(!name){ alert('Vui lòng nhập Họ và tên (IN HOA)'); return; }
+  if(!/^\d{9}$|^\d{12}$/.test(cccd)){ alert('Số CMTND/CCCD phải đúng 9 hoặc 12 số'); return; }
+  if(!major){ alert('Vui lòng chọn Môn học thi sát hạch!'); return; }
+
+  showLoad('Đang kiểm tra tài khoản...');
   try {
+    // 1. Thử đăng nhập nhanh nếu đã có hồ sơ môn này
     const loginRes = await apiCall(URL_CHINH, { action: 'getStudent', name, cccd, major });
     hideLoad();
 
@@ -1312,9 +1532,10 @@ async function submitReg(){
       saveSession(); updateUserBox();
       await refreshStudent();
       $('t1-banner').className = 'banner success';
-      $('t1-banner').innerHTML = '✅ Đăng nhập thành công!<br>👤 <b>' + loginRes.data.name + '</b> — Ngành: <b>' + loginRes.data.major + '</b><br>Bạn có thể vào <b>Tab Ôn Thi</b>.';
+      $('t1-banner').innerHTML = '✅ Đăng nhập thành công!<br>👤 <b>' + loginRes.data.name + '</b> — Môn: <b>' + loginRes.data.major + '</b><br>Bạn có thể vào <b>Tab Ôn Thi</b>.';
       $('t1-banner').classList.remove('hidden');
       alert('Đăng nhập thành công!\nBạn có thể bấm Tab "Ôn Thi" để bắt đầu.');
+      switchTab(2);
       return;
     }
 
@@ -1323,27 +1544,47 @@ async function submitReg(){
       return;
     }
 
-    const dob = val('t1-dob');
-    const email = val('t1-email');
-    const phone = val('t1-phone');
-    const experience = val('t1-exp');
-    const address = val('t1-address');
-    const contactPhone = val('t1-contact-phone');
-    const consent = $('t1-consent').checked;
+    // 2. Chưa có tài khoản cho môn này -> Kiểm tra đầy đủ thông tin Phiếu Học Viên
+    const gender         = document.querySelector('input[name="t1-gender"]:checked')?.value || '';
+    const dob            = val('t1-dob');
+    const phone          = val('t1-phone');
+    const email          = val('t1-email');
+    const hometown       = val('t1-hometown');
+    const residence      = val('t1-residence');
+    const ethnicity      = val('t1-ethnicity');
+    const policyGroup    = val('t1-policy') || 'Không';
+    const experience     = val('t1-exp');
+    const education      = val('t1-education');
+    const address        = val('t1-address');
+    const emergencyName  = val('t1-emg-name');
+    const emergencyPhone = val('t1-emg-phone');
+    const consent        = $('t1-consent').checked;
 
-    if (!dob || !email || !phone || !experience || !address || !contactPhone) {
-      alert(`⚠️ Bạn CHƯA ĐĂNG KÝ ngành "${major}" hoặc thông tin chưa chính xác.\n\n→ Nếu muốn đăng ký mới ngành này: Vui lòng điền đầy đủ các trường còn lại (Ngày sinh, Email, SĐT...).\n→ Nếu đã có tài khoản: Hãy kiểm tra lại Họ tên, CCCD và chọn đúng ngành đã đăng ký.`);
+    if (!gender || !dob || !phone || !hometown || !residence || !ethnicity || !education || !emergencyName || !emergencyPhone) {
+      alert(`⚠️ Bạn CHƯA ĐĂNG KÝ môn "${major}".\n\n→ Để đăng ký mới: Vui lòng điền đầy đủ thông tin Phiếu Học Viên (Giới tính, Ngày sinh, SĐT, Nguyên quán, Hộ khẩu, Học lực, Người báo tin...) và tải đủ 3 ảnh.\n→ Nếu đã đăng ký rồi: Kiểm tra lại Họ tên, CCCD và chọn đúng môn đã đăng ký.`);
       return;
     }
-    
-    if (!consent) { alert('Vui lòng tick vào ô cam đoan thông tin'); return; }
-    if (!/^(0[35789])\d{8}$/.test(phone)) { alert('SĐT không hợp lệ (VD: 0912345678)'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email không hợp lệ'); return; }
-    if (!/^(0[35789])\d{8}$/.test(contactPhone)) { alert('SĐT liên hệ không hợp lệ'); return; }
 
-    showLoad('Đang tiến hành đăng ký mới...');
+    if (!/^(0[35789])\d{8}$/.test(phone)) { alert('Số điện thoại học viên không hợp lệ (VD: 0912345678)'); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email không hợp lệ'); return; }
+    if (!/^(0[35789])\d{8}$/.test(emergencyPhone)) { alert('Số điện thoại người báo tin không hợp lệ'); return; }
+    if (!t1Images.avatar || !t1Images.front || !t1Images.back) {
+      alert('Vui lòng tải đủ cả 3 ảnh: Hình thẻ, CCCD mặt trước và CCCD mặt sau.');
+      return;
+    }
+    if (!consent) { alert('Vui lòng tick vào ô cam đoan thông tin'); return; }
+
+    showLoad('Đang tải ảnh và nộp Phiếu Học Viên...');
     const regRes = await apiCall(URL_CHINH, {
-      action: 'register', name, dob, cccd, email, phone, experience, major, address, contactPhone, consent: 'Có'
+      action: 'register',
+      name, gender, dob, cccd, email, phone, experience, major,
+      address, hometown, residence, ethnicity, policyGroup,
+      education, emergencyName, emergencyPhone,
+      contactPhone: emergencyPhone,
+      consent: 'Đồng ý cam đoan',
+      imgAvatar: t1Images.avatar,
+      imgCccdFront: t1Images.front,
+      imgCccdBack: t1Images.back
     });
     hideLoad();
 
@@ -1355,11 +1596,12 @@ async function submitReg(){
     session = { cccd, name, major };
     saveSession(); updateUserBox();
     await refreshStudent();
-    
+
     $('t1-banner').className = 'banner success';
-    $('t1-banner').innerHTML = '✅ ' + regRes.message + '<br>Bạn có thể vào <b>Tab Ôn Thi</b> để bắt đầu.';
+    $('t1-banner').innerHTML = '✅ ' + regRes.message + '<br>Bạn có thể vào <b>Tab Ôn Thi</b> để bắt đầu ngay.';
     $('t1-banner').classList.remove('hidden');
-    alert(regRes.message + '\n\nBạn có thể bấm Tab "Ôn Thi" để bắt đầu.');
+    alert(regRes.message + '\n\nHệ thống sẽ chuyển bạn sang Tab "Ôn Thi".');
+    switchTab(2);
 
   } catch (e) {
     hideLoad();
