@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="referrer" content="no-referrer">
 <title>Newstar - Ôn Thi & Sát Hạch</title>
+<!-- Cấu hình PWA (Cài ra màn hình chính) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Newstar">
+<link rel="apple-touch-icon" href="logo newstar.png">
 <!-- Tailwind cho Tab Tài liệu -->
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -494,6 +501,77 @@ button{font-family:inherit}
     color: #fff;
     transform: rotate(90deg);
 }
+
+/* THANH CÀI ĐẶT APP PWA */
+#pwa-install-bar {
+    background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
+    border-bottom: 2px solid #f59e0b;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13.5px;
+    color: #92400e;
+    font-weight: 600;
+}
+#pwa-install-btn {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(30, 58, 138, 0.3);
+    transition: 0.2s;
+}
+#pwa-install-btn:hover { transform: translateY(-1px); background: #1d4ed8; }
+#pwa-install-close {
+    background: transparent;
+    border: none;
+    color: #b45309;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 6px;
+    line-height: 1;
+}
+
+/* THÔNG BÁO CẬP NHẬT PHIÊN BẢN MỚI */
+#pwa-update-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e3a8a;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 2px solid #d4af37;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 9999;
+    max-width: 92vw;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+#pwa-update-toast button {
+    background: #d4af37;
+    color: #1e293b;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+#pwa-update-toast button:hover { background: #eab308; }
 </style>
 </head>
 <body>
@@ -505,6 +583,13 @@ button{font-family:inherit}
   </div>
   <div id="userBox" class="hidden"><span id="userName"></span><button onclick="logout()">Đăng xuất</button></div>
 </header>
+
+<!-- THANH CÀI ĐẶT APP RA MÀN HÌNH CHÍNH -->
+<div id="pwa-install-bar" class="hidden">
+  <span>📲 Cài App <b>Newstar</b> ra màn hình chính để học &amp; thi mượt hơn!</span>
+  <button id="pwa-install-btn" type="button" onclick="installPWA()">⬇️ Cài đặt App</button>
+  <button id="pwa-install-close" type="button" onclick="dismissPWA()" aria-label="Đóng">&times;</button>
+</div>
 
 <nav id="tabs">
   <button data-tab="1" class="active" onclick="switchTab(1)">📝ĐĂNG KÝ</button>
@@ -857,6 +942,21 @@ button{font-family:inherit}
     📋 Sao chép Link để mở
   </button>
 </div>
+<!-- THÔNG BÁO CÓ PHIÊN BẢN MỚI -->
+<div id="pwa-update-toast" class="hidden">
+  <span>✨ Hệ thống Newstar vừa có bản cập nhật mới!</span>
+  <button type="button" onclick="applyPWAUpdate()">🔄 Cập nhật ngay</button>
+</div>
+
+<!-- POPUP THÔNG BÁO TỪ NHÀ TRƯỜNG -->
+<div id="school-notice-modal" class="mo hidden">
+  <div class="mo-box" style="max-width:460px;">
+    <h3 id="sn-title" style="margin-bottom:10px;">📢 THÔNG BÁO</h3>
+    <div id="sn-content" style="font-size:14.5px;line-height:1.65;color:#1e293b;white-space:pre-line;max-height:55vh;overflow-y:auto;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:14px;"></div>
+    <button class="ok" type="button" onclick="closeSchoolNotice()">✅ Đã hiểu</button>
+  </div>
+</div>
+
 <div id="loading" class="hidden"><div class="spin"></div><span id="loading-text">Đang xử lý...</span></div>
 
 <!-- Data scripts -->
@@ -2893,6 +2993,144 @@ setInterval(function() {
         steps.parentNode.insertBefore(bar, codeBox.nextSibling);
     }
 }, 1000);
+/* ═══════════════════════════════════════════════════════════
+   1. XỬ LÝ NÚT CÀI ĐẶT APP PWA (ANDROID & IOS)
+   ═══════════════════════════════════════════════════════════ */
+let deferredPWAPrompt = null;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPWAPrompt = e;
+  if (!isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.classList.remove('hidden');
+  }
+});
+
+window.addEventListener('load', () => {
+  if (isIOSDevice && !isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.classList.remove('hidden');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPWAPrompt = null;
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.classList.add('hidden');
+});
+
+async function installPWA() {
+  if (deferredPWAPrompt) {
+    deferredPWAPrompt.prompt();
+    const { outcome } = await deferredPWAPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('pwa-install-bar').classList.add('hidden');
+    }
+    deferredPWAPrompt = null;
+  } else if (isIOSDevice) {
+    alert('📲 CÁCH CÀI APP TRÊN IPHONE / IPAD:\n\n1. Bấm nút CHIA SẺ (ô vuông có mũi tên chỉ lên) ở thanh dưới cùng Safari.\n2. Kéo xuống chọn "Thêm vào MH chính" (Add to Home Screen).\n3. Bấm "Thêm" ở góc trên bên phải là xong!');
+  } else {
+    alert('Vui lòng bấm biểu tượng 3 chấm góc trên bên phải trình duyệt → chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".');
+  }
+}
+
+function dismissPWA() {
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.classList.add('hidden');
+  sessionStorage.setItem('pwa_dismissed', '1');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   2. PWA SERVICE WORKER & TỰ ĐỘNG BÁO CẬP NHẬT PHIÊN BẢN MỚI
+   ═══════════════════════════════════════════════════════════ */
+let waitingSW = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      if (reg.waiting) showUpdateToast(reg.waiting);
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateToast(newWorker);
+          }
+        });
+      });
+
+      setInterval(() => reg.update(), 30 * 60 * 1000);
+    }).catch(err => console.log('Lỗi đăng ký SW:', err));
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+}
+
+function showUpdateToast(worker) {
+  waitingSW = worker;
+  const toast = document.getElementById('pwa-update-toast');
+  if (toast) toast.classList.remove('hidden');
+}
+
+function applyPWAUpdate() {
+  if (window.isLockedActivity) {
+    if (!confirm('Bạn đang trong giờ học/thi. Cập nhật ngay sẽ tải lại trang. Bạn có chắc muốn tiếp tục?')) {
+      return;
+    }
+    window.isLockedActivity = false;
+  }
+  if (waitingSW) {
+    waitingSW.postMessage({ type: 'SKIP_WAITING' });
+  } else {
+    window.location.reload();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3. KIỂM TRA & HIỂN THỊ THÔNG BÁO TỪ GOOGLE SHEET
+   ═══════════════════════════════════════════════════════════ */
+let currentNoticeId = '';
+
+async function checkSchoolNotice() {
+  try {
+    const res = await apiCall(URL_CHINH, { action: 'getAnnouncement' });
+    if (!res || !res.success || !res.active || !res.content) return;
+    if (localStorage.getItem('ns_notice_seen') === res.id) return;
+
+    currentNoticeId = res.id;
+    const titleEl = document.getElementById('sn-title');
+    const contentEl = document.getElementById('sn-content');
+    const modal = document.getElementById('school-notice-modal');
+
+    if (titleEl) {
+      titleEl.innerText = res.title;
+      titleEl.style.color = (res.level === 'Khẩn') ? '#dc2626' : 'var(--brand-blue)';
+    }
+    if (contentEl) contentEl.innerText = res.content;
+    if (modal) modal.classList.remove('hidden');
+  } catch (e) {
+    console.log('Không tải được thông báo:', e);
+  }
+}
+
+function closeSchoolNotice() {
+  if (currentNoticeId) localStorage.setItem('ns_notice_seen', currentNoticeId);
+  const modal = document.getElementById('school-notice-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+window.addEventListener('load', () => {
+  setTimeout(checkSchoolNotice, 1200);
+});
 </script>
 </body>
 </html>

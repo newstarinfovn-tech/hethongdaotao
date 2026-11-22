@@ -1,0 +1,24 @@
+{
+  "name": "Newstar - Ôn Thi & Sát Hạch",
+  "short_name": "Newstar",
+  "description": "Hệ thống Ôn thi và Sát hạch tay nghề Trường Đào tạo Quốc tế Newstar",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo newstar.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo newstar.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
