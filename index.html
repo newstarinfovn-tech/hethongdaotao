@@ -504,43 +504,54 @@ button{font-family:inherit}
     transform: rotate(90deg);
 }
 
-/* THANH CÀI ĐẶT APP PWA */
+/* MÀN HÌNH BẮT BUỘC CÀI ĐẶT APP PWA */
 #pwa-install-bar {
-    background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%);
-    border-bottom: 2px solid #f59e0b;
-    padding: 10px 16px;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    font-size: 13.5px;
-    color: #92400e;
-    font-weight: 600;
+    padding: 20px;
+    z-index: 9998;
+}
+.pwa-install-box {
+    background: #ffffff;
+    border: 3px solid #d4af37;
+    border-radius: 18px;
+    padding: 28px 22px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+.pwa-install-box h3 {
+    color: #1e3a8a;
+    font-size: 19px;
+    font-weight: 800;
+    margin: 10px 0 8px;
+}
+.pwa-install-box p {
+    color: #334155;
+    font-size: 14.5px;
+    line-height: 1.6;
+    margin: 0 0 20px;
 }
 #pwa-install-btn {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: #fff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 50px;
-    font-size: 13px;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 15.5px;
     font-weight: 800;
+    width: 100%;
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(30, 58, 138, 0.3);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4);
     transition: 0.2s;
 }
-#pwa-install-btn:hover { transform: translateY(-1px); background: #1d4ed8; }
-#pwa-install-close {
-    background: transparent;
-    border: none;
-    color: #b45309;
-    font-size: 20px;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0 6px;
-    line-height: 1;
-}
+#pwa-install-btn:hover { transform: translateY(-2px); background: #b91c1c; }
 
 /* THÔNG BÁO CẬP NHẬT PHIÊN BẢN MỚI (CHÍNH GIỮA MÀN HÌNH) */
 #pwa-update-toast {
@@ -617,11 +628,14 @@ button{font-family:inherit}
   <div id="userBox" class="hidden"><span id="userName"></span><button onclick="logout()">Đăng xuất</button></div>
 </header>
 
-<!-- THANH CÀI ĐẶT APP RA MÀN HÌNH CHÍNH -->
+<!-- MÀN HÌNH BẮT BUỘC CÀI ĐẶT APP RA MÀN HÌNH CHÍNH -->
 <div id="pwa-install-bar" class="hidden">
-  <span>📲 Cài App <b>Newstar</b> ra màn hình chính để học &amp; thi mượt hơn!</span>
-  <button id="pwa-install-btn" type="button" onclick="installPWA()">⬇️ Cài đặt App</button>
-  <button id="pwa-install-close" type="button" onclick="dismissPWA()" aria-label="Đóng">&times;</button>
+  <div class="pwa-install-box">
+    <div style="font-size: 52px; line-height: 1;">📲</div>
+    <h3>BẮT BUỘC CÀI ĐẶT APP NEWSTAR</h3>
+    <p>Vui lòng cài App <b>NEWSTAR</b> ra màn hình chính điện thoại để kích hoạt tính năng <b>Đăng ký, Ôn thi &amp; Thi sát hạch online</b>.</p>
+    <button id="pwa-install-btn" type="button" onclick="installPWA()">⬇️ CÀI ĐẶT APP NGAY</button>
+  </div>
 </div>
 
 <nav id="tabs">
@@ -995,7 +1009,7 @@ button{font-family:inherit}
   <div style="font-size: 70px; margin-bottom: 20px;">⚠️</div>
   <h2 style="color: #ef4444; font-size: 24px; margin-bottom: 10px; font-weight: 800;">ZALO KHÔNG HỖ TRỢ ÂM THANH</h2>
   <p style="font-size: 16px; line-height: 1.6; max-width: 400px; margin-bottom: 20px;">
-    Để nghe được giọng giảng viên và bật Camera thi, vui lòng:<br><br>
+    Để nghe được bài giàng của giảng viên, vui lòng:<br><br>
     1. Bấm vào biểu tượng <b>3 chấm (...)</b> ở góc phải trên cùng.<br>
     2. Chọn <b>"Mở bằng Trình duyệt"</b> (Chrome hoặc Safari).
   </p>
@@ -3179,14 +3193,14 @@ const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSSt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPWAPrompt = e;
-  if (!isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
+  if (!isStandalone) {
     const bar = document.getElementById('pwa-install-bar');
     if (bar) bar.classList.remove('hidden');
   }
 });
 
 window.addEventListener('load', () => {
-  if (isIOSDevice && !isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
+  if (isIOSDevice && !isStandalone) {
     const bar = document.getElementById('pwa-install-bar');
     if (bar) bar.classList.remove('hidden');
   }
