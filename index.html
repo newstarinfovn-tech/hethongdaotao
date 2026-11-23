@@ -632,7 +632,7 @@ button{font-family:inherit}
 <div id="pwa-install-bar" class="hidden">
   <div class="pwa-install-box">
     <div style="font-size: 52px; line-height: 1;">📲</div>
-    <h3>BẮT BUỘC CÀI ĐẶT APP NEWSTAR</h3>
+    <h3>CÀI ĐẶT APP NEWSTAR</h3>
     <p>Vui lòng cài App <b>NEWSTAR</b> ra màn hình chính điện thoại để kích hoạt tính năng <b>Đăng ký, Ôn thi &amp; Thi sát hạch online</b>.</p>
     <button id="pwa-install-btn" type="button" onclick="installPWA()">⬇️ CÀI ĐẶT APP NGAY</button>
   </div>
@@ -3206,10 +3206,31 @@ window.addEventListener('load', () => {
   }
 });
 
+function showInstalledSuccessScreen() {
+  const bar = document.getElementById('pwa-install-bar');
+  if (!bar) return;
+  bar.classList.remove('hidden');
+  bar.innerHTML = `
+    <div class="pwa-install-box" style="border-color: #22c55e;">
+      <div style="font-size: 56px; line-height: 1;">✅</div>
+      <h3 style="color: #166534;">CÀI ĐẶT APP THÀNH CÔNG!</h3>
+      <p style="margin-bottom: 12px;">
+        Ứng dụng <b>NEWSTAR</b> đã được đưa ra màn hình chính điện thoại của bạn.
+      </p>
+      <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 12px; font-size: 14px; color: #166534; text-align: left; line-height: 1.6;">
+        👉 <b>Bước tiếp theo:</b><br>
+        1. Thoát trình duyệt này (Trở về màn hình chính).<br>
+        2. Bấm vào biểu tượng <b>NEWSTAR</b> trên màn hình để vào đăng ký &amp; học thi.
+      </div>
+    </div>
+  `;
+  // Thử tự đóng tab nếu thiết bị/trình duyệt cho phép
+  try { window.close(); } catch (e) {}
+}
+
 window.addEventListener('appinstalled', () => {
   deferredPWAPrompt = null;
-  const bar = document.getElementById('pwa-install-bar');
-  if (bar) bar.classList.add('hidden');
+  showInstalledSuccessScreen();
 });
 
 async function installPWA() {
@@ -3217,11 +3238,11 @@ async function installPWA() {
     deferredPWAPrompt.prompt();
     const { outcome } = await deferredPWAPrompt.userChoice;
     if (outcome === 'accepted') {
-      document.getElementById('pwa-install-bar').classList.add('hidden');
+      showInstalledSuccessScreen();
     }
     deferredPWAPrompt = null;
   } else if (isIOSDevice) {
-    alert('📲 CÁCH CÀI APP TRÊN IPHONE / IPAD:\n\n1. Bấm nút CHIA SẺ (ô vuông có mũi tên chỉ lên) ở thanh dưới cùng Safari.\n2. Kéo xuống chọn "Thêm vào MH chính" (Add to Home Screen).\n3. Bấm "Thêm" ở góc trên bên phải là xong!');
+    alert('📲 CÁCH CÀI APP TRÊN IPHONE / IPAD:\n\n1. Bấm nút CHIA SẺ (ô vuông có mũi tên chỉ lên) ở thanh dưới cùng Safari.\n2. Kéo xuống chọn "Thêm vào MH chính" (Add to Home Screen).\n3. Bấm "Thêm" ở góc trên bên phải.\n4. Quay ra màn hình chính và mở biểu tượng NEWSTAR!');
   } else {
     alert('Vui lòng bấm biểu tượng 3 chấm góc trên bên phải trình duyệt → chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".');
   }
