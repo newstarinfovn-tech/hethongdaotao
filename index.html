@@ -18,14 +18,20 @@
   const activeRef = urlRef || localStorage.getItem('ns_ref_code') || '';
   if (!activeRef) return;
 
-  const baseUrl = window.location.origin + window.location.pathname;
-  const dynamicStartUrl = baseUrl + '?ref=' + encodeURIComponent(activeRef);
+  const folderUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+  const dynamicStartUrl = folderUrl + '?ref=' + encodeURIComponent(activeRef);
 
   fetch('manifest.json')
     .then(r => r.json())
     .then(manifest => {
       manifest.start_url = dynamicStartUrl;
-      manifest.scope = window.location.origin + '/';
+      manifest.scope = folderUrl;
+      if (Array.isArray(manifest.icons)) {
+        manifest.icons = manifest.icons.map(icon => ({
+          ...icon,
+          src: new URL(icon.src, folderUrl).href
+        }));
+      }
       const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
       const manifestURL = URL.createObjectURL(blob);
       const link = document.querySelector('link[rel="manifest"]');
