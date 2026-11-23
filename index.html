@@ -7,6 +7,33 @@
 <title>Newstar - Ôn Thi & Sát Hạch</title>
 <!-- Cấu hình PWA (Cài ra màn hình chính) -->
 <link rel="manifest" href="manifest.json">
+<script>
+// Tự động gắn mã ?ref=... vào cấu hình cài App (giữ nguyên mã khi mở App trên cả Android & iPhone)
+(function injectDynamicManifest() {
+  const params = new URLSearchParams(window.location.search);
+  const urlRef = (params.get('ref') || '').trim().toUpperCase();
+  if (urlRef) {
+    localStorage.setItem('ns_ref_code', urlRef);
+  }
+  const activeRef = urlRef || localStorage.getItem('ns_ref_code') || '';
+  if (!activeRef) return;
+
+  const baseUrl = window.location.origin + window.location.pathname;
+  const dynamicStartUrl = baseUrl + '?ref=' + encodeURIComponent(activeRef);
+
+  fetch('manifest.json')
+    .then(r => r.json())
+    .then(manifest => {
+      manifest.start_url = dynamicStartUrl;
+      manifest.scope = window.location.origin + '/';
+      const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+      const manifestURL = URL.createObjectURL(blob);
+      const link = document.querySelector('link[rel="manifest"]');
+      if (link) link.setAttribute('href', manifestURL);
+    })
+    .catch(() => {});
+})();
+</script>
 <meta name="theme-color" content="#1e3a8a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -806,6 +833,13 @@ button{font-family:inherit}
           <div class="field">
             <label>Điện thoại giáo viên <span style="color:#e74c3c">*</span></label>
             <input id="t1-emg-phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxx" required>
+          </div>
+        </div>
+
+<div class="form-row full" id="t1-ref-wrap">
+          <div class="field">
+            <label>Mã cán bộ tuyển sinh / Cơ sở liên kết</label>
+            <input id="t1-ref" value="NS" readonly style="background:#f0fdf4; color:#166534; font-weight:800; cursor:not-allowed;">
           </div>
         </div>
 
@@ -1756,6 +1790,7 @@ async function submitRegOnly() {
   const address        = val('t1-address');
   const emergencyName  = val('t1-emg-name');
   const emergencyPhone = val('t1-emg-phone');
+  const refCode        = (val('t1-ref') || localStorage.getItem('ns_ref_code') || 'NS').trim().toUpperCase();
   const consent        = $('t1-consent').checked;
 
   if (!name) { alert('Vui lòng nhập Họ và tên (IN HOA)'); return; }
@@ -1779,6 +1814,7 @@ async function submitRegOnly() {
       address, hometown, residence, ethnicity, policyGroup,
       education, emergencyName, emergencyPhone,
       contactPhone: emergencyPhone,
+      refCode: refCode,
       consent: 'Đồng ý cam đoan',
       imgAvatar: t1Images.avatar,
       imgCccdFront: t1Images.front,
@@ -3338,6 +3374,20 @@ function closeSchoolNotice() {
   const modal = document.getElementById('school-notice-modal');
   if (modal) modal.classList.add('hidden');
 }
+
+// Hiển thị mã tuyển sinh / cơ sở lên Form đăng ký (mặc định NS nếu mở link gốc)
+(function applyReferralToForm() {
+  const params = new URLSearchParams(window.location.search);
+  const urlRef = (params.get('ref') || '').trim().toUpperCase();
+  if (urlRef) {
+    localStorage.setItem('ns_ref_code', urlRef);
+  }
+  const activeRef = localStorage.getItem('ns_ref_code') || 'NS';
+  const refInput = document.getElementById('t1-ref');
+  if (refInput) {
+    refInput.value = activeRef;
+  }
+})();
 
 window.addEventListener('load', () => {
   setTimeout(checkSchoolNotice, 1200);
