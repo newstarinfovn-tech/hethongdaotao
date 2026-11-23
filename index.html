@@ -710,7 +710,7 @@ button{font-family:inherit}
         </div>
         <div class="form-row full">
           <div class="field">
-            <label>2. Số CCCD / CMTND (9 hoặc 12 số) <span style="color:#e74c3c">*</span></label>
+            <label>2. Số CCCD (12 số) <span style="color:#e74c3c">*</span></label>
             <input id="t1-login-cccd" inputmode="numeric" maxlength="12" placeholder="012345678901" required>
           </div>
         </div>
@@ -757,7 +757,7 @@ button{font-family:inherit}
             <input id="t1-dob" type="date" required>
           </div>
           <div class="field">
-            <label>Số CMTND / CCCD (9 hoặc 12 số) <span style="color:#e74c3c">*</span></label>
+            <label>Số CCCD (12 số) <span style="color:#e74c3c">*</span></label>
             <input id="t1-cccd" inputmode="numeric" maxlength="12" placeholder="012345678901" required>
           </div>
         </div>
@@ -1748,7 +1748,7 @@ async function submitLoginOnly() {
   const major = val('t1-login-major');
 
   if (!name) { alert('Vui lòng nhập Họ và tên (IN HOA)'); return; }
-  if (!/^\d{9}$|^\d{12}$/.test(cccd)) { alert('Số CMTND/CCCD phải đúng 9 hoặc 12 số'); return; }
+  if (!/^\d{9}$|^\d{12}$/.test(cccd)) { alert('Số CCCD phải đúng 12 số'); return; }
   if (!major) { alert('Vui lòng chọn Ngành / Môn học đã đăng ký!'); return; }
 
   showLoad('Đang đăng nhập...');
@@ -1803,11 +1803,11 @@ async function submitRegOnly() {
 
   if (!name) { alert('Vui lòng nhập Họ và tên (IN HOA)'); return; }
   if (!gender) { alert('Vui lòng chọn Giới tính'); return; }
-  if (!/^\d{9}$|^\d{12}$/.test(cccd)) { alert('Số CMTND/CCCD phải đúng 9 hoặc 12 số'); return; }
+  if (!/^\d{9}$|^\d{12}$/.test(cccd)) { alert('Số CCCD phải đúng 12 số'); return; }
   if (!/^(0[35789])\d{8}$/.test(phone)) { alert('Số điện thoại học viên không hợp lệ (VD: 0912345678)'); return; }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Email không hợp lệ'); return; }
   if (!major) { alert('Vui lòng chọn Môn học thi sát hạch!'); return; }
-  if (!/^(0[35789])\d{8}$/.test(emergencyPhone)) { alert('Số điện thoại người báo tin không hợp lệ'); return; }
+  if (!/^(0[35789])\d{8}$/.test(emergencyPhone)) { alert('Số điện thoại giáo viên không hợp lệ'); return; }
   if (!t1Images.avatar || !t1Images.front || !t1Images.back) {
     alert('Vui lòng tải đủ cả 3 ảnh: Hình thẻ, CCCD mặt trước và CCCD mặt sau.');
     return;
