@@ -2,6 +2,14 @@
 // DANH SÁCH 22 NGÀNH NGHỀ (KÈM ẢNH & TÊN GIÁO VIÊN)
 // ═══════════════════════════════════════════════════════════
 window.NEWSTAR_MAJORS = [
+  {
+    id: "huongdan",
+    name: "HƯỚNG DẪN SỬ DỤNG & QUY ĐỊNH HỌC – THI",
+    folder: "huongdan", // Đổi đúng theo tên thư mục chứa file theory.js của anh
+    icon: "fa-book-open",
+    enabled: true,
+    isGuide: true
+  },
   { id: 'cham-soc-da',  folder: 'cham-soc-da',  name: 'Chăm sóc da',                                          enabled: true,  teacher: 'My',     avatar: 'my-chamsocda.jpg' },
   { id: 'cntt-coban',   folder: 'cntt-coban',   name: 'Công nghệ thông tin cơ bản',                           enabled: false,  teacher: 'Trinh',  avatar: 'trinh-tinhoc.jpg' },
   { id: 'duong-sinh',   folder: 'duong-sinh',   name: 'Dưỡng sinh Đông y',                                    enabled: true,  teacher: 'Diệp',   avatar: 'diep-duongsinh.jpg' },

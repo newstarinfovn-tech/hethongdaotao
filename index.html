@@ -1523,12 +1523,23 @@ async function tl_init() {
             await tl_loadScript(`data/${major.folder}/theory.js`);
             const rawData = window.NEWSTAR_DATA[major.folder]?.theory;
             if (rawData && rawData.trim().length > 50) {
-                const qCount = tl_parseText(rawData).length;
-                card.querySelector('.load-status').outerHTML = `
-                    <p class="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-1.5">
-                        <i class="fas fa-check-circle"></i> ${qCount} câu hỏi
-                    </p>`;
-                card.onclick = () => tl_openSubject(major, rawData, qCount);
+                if (major.isGuide) {
+                    const iconWrap = card.querySelector('.icon-wrap');
+                    if (iconWrap) iconWrap.style.background = 'linear-gradient(135deg, #d97706, #b45309)';
+                    card.style.borderColor = '#fcd34d';
+                    card.querySelector('.load-status').outerHTML = `
+                        <p class="text-xs text-amber-800 font-bold bg-amber-50 px-3 py-1 rounded-full border border-amber-200 flex items-center gap-1.5">
+                            <i class="fas fa-star text-amber-500"></i> Tài liệu bắt buộc đọc
+                        </p>`;
+                    card.onclick = () => tl_openSubject(major, rawData, 0);
+                } else {
+                    const qCount = tl_parseText(rawData).length;
+                    card.querySelector('.load-status').outerHTML = `
+                        <p class="text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 flex items-center gap-1.5">
+                            <i class="fas fa-check-circle"></i> ${qCount} câu hỏi
+                        </p>`;
+                    card.onclick = () => tl_openSubject(major, rawData, qCount);
+                }
                 tl_renderedMajors.push({ name: major.name, card });
             } else {
                 throw new Error("Empty Data");
@@ -1546,43 +1557,140 @@ async function tl_init() {
     $('tl-search-input').addEventListener('input', (e) => tl_filterSubjects(e.target.value));
 }
 
+function tl_formatGuideHtml(rawText) {
+    if (!rawText) return '';
+    if (rawText.trim().startsWith('<')) return rawText;
+
+    const fmtInline = (s) => s
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 font-bold">$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<span class="bg-blue-50 text-[#1e3a8a] px-1.5 py-0.5 rounded font-bold text-xs border border-blue-200">$1</span>');
+
+    const lines = rawText.split(/\r?\n/);
+    let html = '';
+    let i = 0;
+
+    while (i < lines.length) {
+        const line = lines[i];
+        const trimmed = line.trim();
+
+        if (!trimmed) { i++; continue; }
+
+        // Bảng Markdown (| ... |)
+        if (trimmed.startsWith('|')) {
+            const tableLines = [];
+            while (i < lines.length && lines[i].trim().startsWith('|')) {
+                tableLines.push(lines[i].trim());
+                i++;
+            }
+            const dataRows = tableLines.filter(r => !/^\|[\s\-:|]+\|$/.test(r));
+            if (dataRows.length > 0) {
+                html += '<div class="overflow-x-auto my-4 rounded-xl border border-slate-200 shadow-sm"><table class="w-full text-left border-collapse text-sm">';
+                dataRows.forEach((row, rIdx) => {
+                    const cells = row.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+                    if (rIdx === 0) {
+                        html += '<thead><tr class="bg-[#1e3a8a] text-white">';
+                        cells.forEach(c => { html += `<th class="p-3 font-bold border border-blue-800">${fmtInline(c)}</th>`; });
+                        html += '</tr></thead><tbody>';
+                    } else {
+                        const rowBg = rIdx % 2 === 1 ? 'bg-white' : 'bg-slate-50';
+                        html += `<tr class="${rowBg}">`;
+                        cells.forEach(c => { html += `<td class="p-3 border border-slate-200 align-top leading-relaxed text-slate-700">${fmtInline(c)}</td>`; });
+                        html += '</tr>';
+                    }
+                });
+                html += '</tbody></table></div>';
+            }
+            continue;
+        }
+
+        // Đường kẻ phân cách
+        if (/^---+$/.test(trimmed)) {
+            html += '<hr class="my-5 border-slate-200">';
+            i++; continue;
+        }
+
+        // Tiêu đề các cấp
+        if (trimmed.startsWith('#### ')) {
+            html += `<h5 class="text-sm font-extrabold text-blue-800 mt-4 mb-2">${fmtInline(trimmed.slice(5))}</h5>`;
+            i++; continue;
+        }
+        if (trimmed.startsWith('### ')) {
+            html += `<h4 class="text-base font-bold text-slate-800 mt-5 mb-2">${fmtInline(trimmed.slice(4))}</h4>`;
+            i++; continue;
+        }
+        if (trimmed.startsWith('## ')) {
+            html += `<h3 class="text-sm md:text-base font-extrabold text-[#1e3a8a] bg-blue-50 border-l-4 border-[#1e3a8a] px-3.5 py-2 rounded-r-lg mt-6 mb-3 uppercase">${fmtInline(trimmed.slice(3))}</h3>`;
+            i++; continue;
+        }
+        if (trimmed.startsWith('# ')) {
+            html += `<h2 class="text-lg md:text-xl font-extrabold text-[#1e3a8a] uppercase mb-2">${fmtInline(trimmed.slice(2))}</h2>`;
+            i++; continue;
+        }
+
+        // Danh sách gạch đầu dòng hoặc đánh số
+        const listMatch = line.match(/^(\s*)([*\-•]|\d+\.)\s+(.*)$/);
+        if (listMatch) {
+            const indent = listMatch[1].length >= 2 ? 'ml-6' : 'ml-1';
+            const marker = /^\d+\./.test(listMatch[2])
+                ? `<span class="font-bold text-[#1e3a8a] min-w-[20px]">${listMatch[2]}</span>`
+                : '<span class="text-[#d97706] font-bold">•</span>';
+            html += `<div class="flex items-start gap-2.5 ${indent} mb-2 text-sm text-slate-700 leading-relaxed">${marker}<div>${fmtInline(listMatch[3])}</div></div>`;
+            i++; continue;
+        }
+
+        // Đoạn văn thông thường
+        html += `<p class="text-sm text-slate-700 leading-relaxed mb-2">${fmtInline(trimmed)}</p>`;
+        i++;
+    }
+    return html;
+}
+
 function tl_openSubject(major, rawText, qCount) {
-    const questions = tl_parseText(rawText);
     $('tl-detail-title').innerText = major.name;
     $('tl-print-title').innerText = major.name;
-    $('tl-detail-count').innerHTML = `Đã trích xuất thành công: <strong class="text-emerald-700 text-lg">${questions.length}</strong> câu hỏi`;
-    
     const contentDiv = $('tl-detail-content');
     contentDiv.innerHTML = '';
-    
-    questions.forEach((q, idx) => {
-        const qDiv = document.createElement('div');
-        qDiv.className = "tl-question-card tl-print-card";
-        
-        let optionsHtml = '<ul class="mt-4 space-y-2">';
-        q.options.forEach(opt => {
-            optionsHtml += `<li class="text-slate-700 pl-4 border-l-2 border-slate-200 py-1 text-sm">${opt}</li>`;
-        });
-        optionsHtml += '</ul>';
 
-        qDiv.innerHTML = `
-            <h4 class="font-bold text-base text-slate-800 leading-snug flex gap-2">
-                <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 text-blue-700 text-xs font-extrabold flex-shrink-0 mt-0.5">${idx + 1}</span>
-                <span>${q.question}</span>
-            </h4>
-            ${optionsHtml}
-            <div class="mt-4 p-4 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-lg border border-emerald-100 break-inside-avoid">
-                <p class="font-bold text-emerald-700 mb-2 text-base flex items-center gap-2">
-                    <i class="fas fa-check-circle"></i>${q.answer}
-                </p>
-                <p class="text-slate-700 text-sm leading-relaxed">
-                    <strong class="text-blue-800 uppercase text-[10px] tracking-wider block mb-1">Giải thích chi tiết:</strong>
-                    ${q.explanation}
-                </p>
-            </div>
-        `;
-        contentDiv.appendChild(qDiv);
-    });
+    if (major.isGuide) {
+        $('tl-detail-count').innerHTML = `<i class="fas fa-exclamation-circle text-amber-600"></i> <strong class="text-amber-800">Tài liệu bắt buộc đọc trước khi học &amp; thi</strong>`;
+        const guideCard = document.createElement('div');
+        guideCard.className = "tl-question-card tl-print-card";
+        guideCard.innerHTML = tl_formatGuideHtml(rawText);
+        contentDiv.appendChild(guideCard);
+    } else {
+        const questions = tl_parseText(rawText);
+        $('tl-detail-count').innerHTML = `Đã trích xuất thành công: <strong class="text-emerald-700 text-lg">${questions.length}</strong> câu hỏi`;
+        
+        questions.forEach((q, idx) => {
+            const qDiv = document.createElement('div');
+            qDiv.className = "tl-question-card tl-print-card";
+            
+            let optionsHtml = '<ul class="mt-4 space-y-2">';
+            q.options.forEach(opt => {
+                optionsHtml += `<li class="text-slate-700 pl-4 border-l-2 border-slate-200 py-1 text-sm">${opt}</li>`;
+            });
+            optionsHtml += '</ul>';
+
+            qDiv.innerHTML = `
+                <h4 class="font-bold text-base text-slate-800 leading-snug flex gap-2">
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 text-blue-700 text-xs font-extrabold flex-shrink-0 mt-0.5">${idx + 1}</span>
+                    <span>${q.question}</span>
+                </h4>
+                ${optionsHtml}
+                <div class="mt-4 p-4 bg-gradient-to-br from-emerald-50 to-blue-50 rounded-lg border border-emerald-100 break-inside-avoid">
+                    <p class="font-bold text-emerald-700 mb-2 text-base flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i>${q.answer}
+                    </p>
+                    <p class="text-slate-700 text-sm leading-relaxed">
+                        <strong class="text-blue-800 uppercase text-[10px] tracking-wider block mb-1">Giải thích chi tiết:</strong>
+                        ${q.explanation}
+                    </p>
+                </div>
+            `;
+            contentDiv.appendChild(qDiv);
+        });
+    }
     
     $('tl-screen-home').classList.add('hidden');
     $('tl-screen-detail').classList.remove('hidden');
@@ -1684,6 +1792,7 @@ function renderMajorOptions(){
     if(!sel) return;
     sel.innerHTML = '<option value="">— Chọn ngành —</option>';
     window.NEWSTAR_MAJORS.forEach(m => {
+      if (m.isGuide) return;
       const opt = document.createElement('option');
       opt.value = m.name;
       opt.textContent = m.name + (m.enabled ? '' : ' (Sắp mở)');
