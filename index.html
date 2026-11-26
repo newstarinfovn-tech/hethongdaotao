@@ -661,14 +661,15 @@ button{font-family:inherit}
   <div id="userBox" class="hidden"><span id="userName"></span><button onclick="logout()">Đăng xuất</button></div>
 </header>
 
-<!-- MÀN HÌNH BẮT BUỘC CÀI ĐẶT APP RA MÀN HÌNH CHÍNH -->
-<div id="pwa-install-bar" class="hidden">
-  <div class="pwa-install-box">
-    <div style="font-size: 52px; line-height: 1;">📲</div>
-    <h3>CÀI ĐẶT APP NEWSTAR</h3>
-    <p>Vui lòng cài App <b>NEWSTAR</b> ra màn hình chính điện thoại để kích hoạt tính năng <b>Đăng ký, Ôn thi &amp; Thi sát hạch online</b>.</p>
-    <button id="pwa-install-btn" type="button" onclick="installPWA()">⬇️ CÀI ĐẶT APP NGAY</button>
-  </div>
+<!-- THANH GỢI Ý CÀI NHANH APP (CHỈ HIỆN TRÊN ANDROID, CÓ NÚT TẮT ✕) -->
+<div id="pwa-install-bar" style="display: none; background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%); border-bottom: 1.5px solid #f59e0b; padding: 8px 14px; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #92400e; font-weight: 600;">
+  <span>📲 Cài lối tắt <b>Newstar</b> ra màn hình chính (tùy chọn)</span>
+  <button id="pwa-install-btn" type="button" onclick="installPWA()" style="background: #1e3a8a; color: #ffffff; border: none; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(30,58,138,0.25);">
+    ⬇️ Cài nhanh
+  </button>
+  <button id="pwa-install-close" type="button" onclick="dismissPWA()" aria-label="Đóng" style="background: transparent; border: none; color: #b45309; font-size: 20px; font-weight: 700; cursor: pointer; padding: 0 6px; line-height: 1;">
+    &times;
+  </button>
 </div>
 
 <nav id="tabs">
@@ -3228,73 +3229,42 @@ setInterval(function() {
     }
 }, 1000);
 /* ═══════════════════════════════════════════════════════════
-   1. XỬ LÝ NÚT CÀI ĐẶT APP PWA (ANDROID & IOS)
+   XỬ LÝ THANH GỢI Ý CÀI APP PWA (CHỈ HIỆN TRÊN ANDROID)
    ═══════════════════════════════════════════════════════════ */
 let deferredPWAPrompt = null;
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
+// Chỉ hiện thanh gợi ý mảnh khi trình duyệt Android/Chrome hỗ trợ cài 1 chạm
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPWAPrompt = e;
-  if (!isStandalone) {
+  if (!isStandalone && !sessionStorage.getItem('pwa_dismissed')) {
     const bar = document.getElementById('pwa-install-bar');
-    if (bar) bar.classList.remove('hidden');
+    if (bar) bar.style.display = 'flex';
   }
 });
 
-window.addEventListener('load', () => {
-  if (isIOSDevice && !isStandalone) {
-    const bar = document.getElementById('pwa-install-bar');
-    if (bar) bar.classList.remove('hidden');
-  }
-});
-
-function showInstalledSuccessScreen() {
-  const bar = document.getElementById('pwa-install-bar');
-  if (!bar) return;
-  bar.classList.remove('hidden');
-  bar.innerHTML = `
-    <div class="pwa-install-box" style="border-color: #22c55e;">
-      <div style="font-size: 56px; line-height: 1;">✅</div>
-      <h3 style="color: #166534;">CÀI ĐẶT APP THÀNH CÔNG!</h3>
-      <p style="margin-bottom: 12px;">
-        Ứng dụng <b>NEWSTAR</b> đã được cài trên màn hình chính điện thoại của bạn.
-      </p>
-      <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 12px; font-size: 14px; color: #166534; text-align: left; line-height: 1.6;">
-        👉 <b>Bước tiếp theo:</b><br>
-        1. Thoát trình duyệt này (Trở về màn hình chính).<br>
-        2. Bấm vào biểu tượng <b>NEWSTAR</b> trên màn hình để vào đăng ký &amp; học thi.
-      </div>
-    </div>
-  `;
-  // Thử tự đóng tab nếu thiết bị/trình duyệt cho phép
-  try { window.close(); } catch (e) {}
-}
-
+// Tự động ẩn thanh gợi ý sau khi học viên cài xong
 window.addEventListener('appinstalled', () => {
   deferredPWAPrompt = null;
-  showInstalledSuccessScreen();
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.style.display = 'none';
 });
 
 async function installPWA() {
-  if (deferredPWAPrompt) {
-    deferredPWAPrompt.prompt();
-    const { outcome } = await deferredPWAPrompt.userChoice;
-    if (outcome === 'accepted') {
-      showInstalledSuccessScreen();
-    }
-    deferredPWAPrompt = null;
-  } else if (isIOSDevice) {
-    alert('📲 CÁCH CÀI APP TRÊN IPHONE / IPAD:\n\n1. Bấm nút CHIA SẺ (ô vuông có mũi tên chỉ lên) ở thanh dưới cùng Safari.\n2. Kéo xuống chọn "Thêm vào MH chính" (Add to Home Screen).\n3. Bấm "Thêm" ở góc trên bên phải.\n4. Quay ra màn hình chính và mở biểu tượng NEWSTAR!');
-  } else {
-    alert('Vui lòng bấm biểu tượng 3 chấm góc trên bên phải trình duyệt → chọn "Cài đặt ứng dụng" hoặc "Thêm vào màn hình chính".');
+  if (!deferredPWAPrompt) return;
+  deferredPWAPrompt.prompt();
+  const { outcome } = await deferredPWAPrompt.userChoice;
+  if (outcome === 'accepted') {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.style.display = 'none';
   }
+  deferredPWAPrompt = null;
 }
 
 function dismissPWA() {
   const bar = document.getElementById('pwa-install-bar');
-  if (bar) bar.classList.add('hidden');
+  if (bar) bar.style.display = 'none';
   sessionStorage.setItem('pwa_dismissed', '1');
 }
 
@@ -3383,17 +3353,26 @@ function closeSchoolNotice() {
   if (modal) modal.classList.add('hidden');
 }
 
-// Hiển thị mã tuyển sinh / cơ sở lên Form đăng ký (mặc định NS nếu mở link gốc)
+// Hiển thị & giữ cố định mã tuyển sinh / cơ sở trên trình duyệt (đối chiếu qua quanlytuyensinh.js)
 (function applyReferralToForm() {
-  const params = new URLSearchParams(window.location.search);
-  const urlRef = (params.get('ref') || '').trim().toUpperCase();
+  const url = new URL(window.location.href);
+  const urlRef = (url.searchParams.get('ref') || '').trim().toUpperCase();
   if (urlRef) {
     localStorage.setItem('ns_ref_code', urlRef);
   }
-  const activeRef = localStorage.getItem('ns_ref_code') || 'NS';
+  const savedRef = localStorage.getItem('ns_ref_code') || '';
+  if (!urlRef && savedRef) {
+    url.searchParams.set('ref', savedRef);
+    window.history.replaceState({}, '', url.toString());
+  }
+  const info = (typeof window.getValidRefInfo === 'function')
+                 ? window.getValidRefInfo(savedRef)
+                 : { code: savedRef || 'NS', label: savedRef || 'NS' };
+
   const refInput = document.getElementById('t1-ref');
   if (refInput) {
-    refInput.value = activeRef;
+    refInput.value = info.label;
+    refInput.dataset.refCode = info.code;
   }
 })();
 
