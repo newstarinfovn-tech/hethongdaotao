@@ -2391,6 +2391,20 @@ const t2 = (()=>{
 
     updateLessonButtons();
     renderLockInfo();
+
+    // Tắt cờ khóa lớp học và mở lại 3 tab (Đăng ký, Tài liệu, Ôn thi)
+    window.isLockedActivity = false;
+    document.querySelectorAll('#tabs button').forEach(btn => {
+      const tabId = String(btn.dataset.tab || '');
+      const onClickStr = String(btn.getAttribute('onclick') || '');
+      const isExamTab = tabId === '3' || tabId === '4' || onClickStr.includes('switchTab(3)') || onClickStr.includes('switchTab(4)');
+      if (!isExamTab) {
+        btn.disabled = false;
+        btn.classList.remove('locked', 'disabled');
+        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '';
+      }
+    });
   }
 
   return {init, selectLesson, lecture, next, mic, unlock, checkout, exitLesson, speedUp, speedDown, stopCam, onHide, onResume};
