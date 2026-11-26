@@ -212,7 +212,7 @@ button{font-family:inherit}
 #t2-unlock{background:#64748b;font-size:13px;padding:10px;display:none;}
 #t2-checkout{background:#22c55e;display:none}
 #t2-checkout.active{display:block}
-#t2-exit{background:#475569;margin-top:4px}
+#t2-exit{background:#475569;margin-top:4px;display:none}
 #t2-exit:hover{background:#334155}
 
 /* THI LÝ THUYẾT (TAB 3) */
@@ -1333,7 +1333,7 @@ document.addEventListener('keydown', initSpeechEngine, {once:true});
 function saveSession(){if(session)localStorage.setItem('ns_sess',JSON.stringify(session))}
 function loadSession(){try{session=JSON.parse(localStorage.getItem('ns_sess')||'null')}catch(e){session=null}}
 function logout(){
-  if(!confirm('Bạn có chắc chắn muốn ĐĂNG XUẤT? Mọi hoạt động đang làm dở sẽ bị hủy!'))return;
+  if(!confirm('Bạn có chắc chắn muốn ĐĂNG XUẤT? Nếu bạn chọn OK thì lần sau bạn phải nhập lại thông tin đăng nhập. Nếu bạn vẫn đang trong quá trình ôn thi và thi sát hạch tay nghề thì hãy bấm HUỶ'))return;
   window.isLoggingOut = true; // Báo hiệu chủ động đăng xuất
   
   // 1. Dừng âm thanh đọc (nếu đang đọc)
@@ -2139,7 +2139,11 @@ const t2 = (()=>{
 
       $('t2-lessons').style.display = 'none';
       $('t2-speed').classList.add('show');
-      $('t2-class').classList.add('show');
+    $('t2-class').classList.add('show');
+    if ($('t2-exit')) {
+      $('t2-exit').style.display = 'block';
+      $('t2-exit').disabled = false;
+    }
       $('t2-lecture').style.display = 'inline-block';
       $('t2-next').style.display = 'none';
       $('t2-checkout').style.display = 'none';
@@ -2374,6 +2378,8 @@ const t2 = (()=>{
     $('t2-lessons').style.display = 'grid';
     $('t2-speed').classList.remove('show');
     $('t2-class').classList.remove('show');
+    if ($('t2-exit')) $('t2-exit').style.display = 'none';
+    if ($('t2-exit')) $('t2-exit').style.display = 'none';
     $('t2-lecture').style.display = 'inline-block';
     $('t2-lecture').disabled = false;
     $('t2-next').style.display = 'none';
