@@ -537,54 +537,93 @@ button{font-family:inherit}
     transform: rotate(90deg);
 }
 
-/* MÀN HÌNH BẮT BUỘC CÀI ĐẶT APP PWA */
+/* POPUP GỢI Ý CÀI APP NHỎ GỌN Ở GIỮA MÀN HÌNH (TONE NEWSTAR) */
 #pwa-install-bar {
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.88);
+    z-index: 99990;
+    background: rgba(15, 23, 42, 0.62);
     backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
+    display: none;
     align-items: center;
-    padding: 20px;
-    z-index: 9998;
+    justify-content: center;
+    padding: 16px;
 }
-.pwa-install-box {
+.pwa-modal-card {
     background: #ffffff;
-    border: 3px solid #d4af37;
-    border-radius: 18px;
-    padding: 28px 22px;
-    max-width: 400px;
     width: 100%;
+    max-width: 350px;
+    border-radius: 20px;
+    border-top: 4px solid #d4af37;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.28);
+    padding: 22px 20px 18px;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    animation: pwaPopIn 0.22s ease-out;
 }
-.pwa-install-box h3 {
+@keyframes pwaPopIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.pwa-modal-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2.5px solid #d4af37;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.18);
+    margin: 0 auto 12px;
+    display: block;
+    background: #ffffff;
+}
+.pwa-modal-title {
     color: #1e3a8a;
-    font-size: 19px;
+    font-size: 16.5px;
     font-weight: 800;
-    margin: 10px 0 8px;
+    margin: 0 0 6px;
+    letter-spacing: 0.2px;
 }
-.pwa-install-box p {
-    color: #334155;
-    font-size: 14.5px;
-    line-height: 1.6;
-    margin: 0 0 20px;
+.pwa-modal-desc {
+    color: #475569;
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin: 0 0 18px;
 }
-#pwa-install-btn {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    color: #fff;
-    border: none;
-    padding: 14px 24px;
+.pwa-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.pwa-btn-skip {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 11px 12px;
     border-radius: 12px;
-    font-size: 15.5px;
-    font-weight: 800;
-    width: 100%;
+    font-size: 13.5px;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4);
     transition: 0.2s;
 }
-#pwa-install-btn:hover { transform: translateY(-2px); background: #b91c1c; }
+.pwa-btn-skip:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.pwa-btn-install {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f2654 100%);
+    color: #ffffff;
+    border: 1px solid #1e3a8a;
+    padding: 11px 12px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.26);
+    transition: 0.2s;
+}
+.pwa-btn-install:hover {
+    filter: brightness(1.08);
+}
 
 /* THÔNG BÁO CẬP NHẬT PHIÊN BẢN MỚI (CHÍNH GIỮA MÀN HÌNH) */
 #pwa-update-toast {
@@ -661,15 +700,17 @@ button{font-family:inherit}
   <div id="userBox" class="hidden"><span id="userName"></span><button onclick="logout()">Đăng xuất</button></div>
 </header>
 
-<!-- THANH GỢI Ý CÀI NHANH APP (CHỈ HIỆN TRÊN ANDROID, CÓ NÚT TẮT ✕) -->
-<div id="pwa-install-bar" style="display: none; background: linear-gradient(90deg, #fffbeb 0%, #fef3c7 100%); border-bottom: 1.5px solid #f59e0b; padding: 8px 14px; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #92400e; font-weight: 600;">
-  <span>📲 Cài lối tắt <b>Newstar</b> ra màn hình chính (tùy chọn)</span>
-  <button id="pwa-install-btn" type="button" onclick="installPWA()" style="background: #1e3a8a; color: #ffffff; border: none; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(30,58,138,0.25);">
-    ⬇️ Cài nhanh
-  </button>
-  <button id="pwa-install-close" type="button" onclick="dismissPWA()" aria-label="Đóng" style="background: transparent; border: none; color: #b45309; font-size: 20px; font-weight: 700; cursor: pointer; padding: 0 6px; line-height: 1;">
-    &times;
-  </button>
+<!-- POPUP CÀI ĐẶT NHANH APP NEWSTAR (CENTER MODAL) -->
+<div id="pwa-install-bar">
+  <div class="pwa-modal-card">
+    <img class="pwa-modal-logo" src="logonewstar.png" onerror="this.onerror=null; this.src='logo newstar.png';" alt="Logo Newstar">
+    <h3 class="pwa-modal-title">CÀI ĐẶT ỨNG DỤNG NEWSTAR</h3>
+    <p class="pwa-modal-desc">Thêm lối tắt ra màn hình chính để vào <b>Đăng ký, Ôn thi &amp; Sát hạch</b> nhanh hơn.</p>
+    <div class="pwa-modal-actions">
+      <button type="button" class="pwa-btn-skip" onclick="dismissPWA()">Không cài</button>
+      <button type="button" class="pwa-btn-install" onclick="installPWA()">⬇️ Cài đặt nhanh</button>
+    </div>
+  </div>
 </div>
 
 <nav id="tabs">
